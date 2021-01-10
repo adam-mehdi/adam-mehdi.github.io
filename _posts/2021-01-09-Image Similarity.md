@@ -1,5 +1,7 @@
 # Image Similarity Finder: Theory and Code
 
+A heuristic for similarity in unstructured image data.
+
 ## Introduction
 
 How can we compute similarity among image data? For tabular and vectorized data, we can compute similarity by simply finding the sum of the difference between each example 
@@ -158,7 +160,7 @@ class SimilarityFinder:
           # 4. preprocess image files for comparison and predict similarity
           im1,im2 = PILImage.create(fn),PILImage.create(f2)
           ims = SiameseImage(im1,im2)        
-          output = slearn.siampredict(ims)[0]
+          output = slearn.siampredict(ims)[0][1]
 
           # 5. record state and outputs
           self.preds.append(torch.sigmoid(output))
@@ -181,7 +183,7 @@ def predict_class(fn,learn):
       with torch.no_grad(): output = learn.model.eval().cpu()(im)
       return learn.dls.vocab[output.argmax()]
 ```
-2. Retrieve a list of same-class images for comparison. I am using predicted class as a heuristic to reduce the amount of images we must search through to retrieve the most similar. `compare_n` specifies the amount of images we would search through, so if case we want speedy results, we would reduce `compare_n`.
+2. Retrieve a list of same-class images for comparison. I am using predicted class as a heuristic to reduce the amount of images we must search through to retrieve the most similar. `compare_n` specifies the amount of images we would search through, so if case we want speedy results, we would reduce `compare_n`. If `compare_n` is 20, calling `predict` takes about one second.
 
 3. Register a hook to record activations of the body. Hooks are pieces of code that we inject into PyTorch models to perform additional functionality. They work well with context managers (`with` blocks) because we must remove the hook after using it. Here, I used the hook to store the final activations of the model's body so I could implement `similar_cams` (explained later).
 ```python
