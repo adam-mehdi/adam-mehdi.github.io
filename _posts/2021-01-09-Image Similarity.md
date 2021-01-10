@@ -133,7 +133,9 @@ slearn.fit_one_cycle(n_epochs, lr)
 
 We use the capability of determining shared breed as a heuristic for image similarity. I use the probability that the two pets are of the same breed as a proxy for similarity: if the model is 95% confident that two pets are of the same breed, they are taken to be more similar than if the model predicts with 80% confidence.
 
-### SimilarityFinder.predict
+Now, let's return to the heart of the project, `SimilarityFinder`, in which we string these capabilities together.
+
+### `SimilarityFinder.predict`
 
 This is the most complex method in the project, so I'll break it down bit by bit. The jist is as follows: input an image file, predict its class, search through a repsitory of images of that same class, record activations of the body with a hook (for `similar_cams`), and output the most similar image.
 
@@ -172,5 +174,73 @@ class SimilarityFinder:
     SiameseImage(sim_ims[0], sim_ims[1], title).show()
     return self.fns[self.idx][1]
 ```
-Now, let's return to the heart of the project, `SimilarityFinder`, in which we string these capabilities together.
+1. Predict breed of input image. `predict_class` does preprocessing on an image file and outputs the predicted class using the classifier model.
+```python
+def predict_class(fn,learn):
+      im = first(learn.dls.test_dl([fn,]))[0].cpu()
+      with torch.no_grad(): output = learn.model.eval().cpu()(im)
+      return learn.dls.vocab[output.argmax()]
+```
+2. Retrieve a list of same-class images for comparison. I am using predicted class as a heuristic to reduce the amount of images we must search through to retrieve the most similar. `compare_n` specifies the amount of images we would search through, so if case we want speedy results, we would reduce `compare_n`.
 
+3. Register a hook to record activations of the body. Hooks are pieces of code that we inject into PyTorch models to perform additional functionality. They work well with context managers (`with` blocks) because we must remove the hook after using it. Here, I used the hook to store the final activations of the model's body so I could implement `similar_cams` (explained later).
+```python
+class Hook():
+      def __init__(self, m):
+        self.hook = m.register_forward_hook(self.hook_func)
+        self.stored = []
+      def hook_func(self,m,i,o): self.stored.append(o.detach().cpu())
+      def reset(self): self.stored = []
+      def __enter__(self,*args,**kwargs): return self
+      def __exit__(self,*args,**kwargs):  self.hook.remove()
+```
+4. Preprocess image files for comparison and predict similarity. `SiameseImage` is a modified tuple used to group and show our images. The `siampredict` method is a version of `Learner.predict` with modified defaults to deal with some wrinkles with the custom model.
+
+5. Record some statistics.
+
+6. Retrieve the image pair with the greatest predicted probability of similarity, taking them to be the most similar of the images considered. Show the images side-by-side with `SiameseImage.show` and output the file name of the most similar image.
+
+That is the primary functionality of the pipeline, but, if implemented as such, we would not know why the images were considered the "most similar". In other words, it would be useful if we could determine the image features that the model utilized to make the prediction. Lest the model predicts two images to be similar due to extraneous factors (i.e. similar backgrounds), I added a CAM functionality.
+### CAM
+Class activation maps are grids that show the places on the original image that most contribute to the output. We create one by matrix multiplying the activations of the model's body (called a spatial map) with a matrix containing the gradient of the output. Here, I used the weight matrix of the final layer of the model as the gradients, as the derivative of the output with respect to the input is the weights. 
+
+Intuitively, the spatial map shows the prominence of the features in each position of the image, and the gradient matrix connects each feature with the output, showing the extent to which each feature was used. The result is an illustration of how each position in the image contributed to the output.
+
+```python
+class SimilarityFinder:
+  def similar_cams(self):
+    # 1. grab the final weights and spatial maps of the most similar images
+    sweight = self.slearn.model.head[-1].weight.cpu()
+    act1,act2 = self.acts[self.idx]
+    # 2. matrix multiply the weights and spatial maps
+    cam_map1 = torch.einsum('ik,kjl->ijl', sweight, act1[0])
+    cam_map2 = torch.einsum('ik,kjl->ijl', sweight, act2[0])
+    # 3. open the most similar images to show them
+    f1,f2 = self.fns[self.idx]
+    t1,t2 = to_tensor(f1,slearn.dls),to_tensor(f2,slearn.dls)
+    # 4. show the CAMs overlain on the images
+    _,axs = plt.subplots(ncols=2)
+    show_cam(t1,cam_map1,axs[0])
+    show_cam(t2,cam_map2,axs[1])
+```
+1. Grab the final weights of the Siamese model as well as the spatial maps of the most similar images, which we recorded with the hook in `predict`.
+2. Perform the dot product between the weights and spatial maps with `torch.einsum` (a method of custom matrix multiplications).
+3. Open the files predicted to be the most similar in `predict`, and convert them into preprocessed tensors that we will be able to show.
+4. Overlay the CAMs on the original images and show them side-by-side.
+```python
+def show_cam(t, cam_map, ctx):
+      show_image(t, ctx=ctx)
+      ctx.imshow(cam_map[0].detach().cpu(), extent=[0,t.shape[2],t.shape[1],0], 
+      alpha=.7, interpolation='BILINEAR', cmap='magma')
+```
+### Final Words
+
+In this project, we predicted the most similar pet to an input pet and then interpreted that prediction with CAMs. In this final section, I will attempt to more precisely define "most similar" and explain why this nuanced definition holds practical consequences.
+
+The central insight in this project is that we can use a Siamese model's confidence in a prediction as a proxy for image similarity. However, "image similarity" in this context does not mean similarity images as a whole, but rather how obviously two images share the features that distinguish a target class. When using the `SimilarityFinder`, then, the classes with which we label our images affect which images are considered to be the most similar. For instance, if we differentiate pets with breed as we did here, the `SimilarityFinder` might predict that two dogs sharing, say, the pointed nose that is distinctive of their breed, are most similar even if their other traits differ considerably. By contrast, if we are to distinguish pets based on another class, such as whether they are cute or not, the model might predict on similar floppy ears more than a pointed nose, since floppy ears would contribute more to cuteness. Thus, `SimilarityFinder` overemphasizes the features that are most important to determining the class on which it is trained.
+
+This variability of two images' predicted image similarity based on class is a useful feature if we are to apply `SimilarityFinder` to more practical problems. For instance, it would be useful as a heuristic for measuring the similarity between the CT scans of pneumonia patients to evaluate treatment options. If we can find the past patient with the most similar case of pneumonia and they responded well to their treatment, say, Cleocin, it is plausible that Cleocin would be a good treatment option for the present patient.
+
+We would determine the similarity of the cases from the CT scan images, but we do not want the model to predict similarity due to extraneous factors such as bone structure or scan quality; we want the similarity to be based on the progression and nature of the disease. Hence, it is useful to determine the features that will contribute to the prediction by specifying class label (e.g. severity and type of pneumonia) and to confirm that appropriate features were utilized by analyzing CAMs.
+
+The purpose of this project was to implement an algorithm that can compute similarity on unstructured image data. `SimilarityFinder` serves as an interpretable heuristic to fulfill that purpose. For now, I am interested in applying that heuristic to medical contexts, providing extra data for such clinical tasks as matching pairs for interpretation of randomized control trials. More to come in subsequent posts.
