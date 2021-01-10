@@ -24,6 +24,9 @@ labelled datasets and matching similar patients for medical prognosis.
 
 Here is the original project’s notebook. I suggest working through the notebook as you read through the following commentary, since I omit some details for brevity.
 
+<img src="https://github.com/adam-mehdi/adam-mehdi.github.io/blob/master/images/title_cam.jpg" width="500" height="224" title="A pair of pets predicted to be similar">
+
+
 ## Diving into the Implementation
 
 Let’s begin where we can get a clear view of the whole project: at the end. 
@@ -82,6 +85,8 @@ clearn.fit_one_cycle(n_epochs, lr)
 
 The classification pipeline is complete; let's move on to the more complicated comparison pipeline.
 
+<img src="https://github.com/adam-mehdi/adam-mehdi.github.io/blob/master/images/classifier_show_results.jpg" width="500" height="224" title="Showing the results of the classifier">
+
 ### Comparison
 
 We trained a model to predict pet breed. Now, we train use a model that predicts whether two images are of the same breed. It will require defining some custom data types and a custom model, as it is not a standard application. The following implementation is drawn from the Siamese tutorial on the fastai documentation, but I made modicications on the model and training process.
@@ -136,6 +141,8 @@ slearn.fit_one_cycle(n_epochs, lr)
 We use the capability of determining shared breed as a heuristic for image similarity. I use the probability that the two pets are of the same breed as a proxy for similarity: if the model is 95% confident that two pets are of the same breed, they are taken to be more similar than if the model predicts with 80% confidence.
 
 Now, let's return to the heart of the project, `SimilarityFinder`, in which we string these capabilities together.
+
+<img src="https://github.com/adam-mehdi/adam-mehdi.github.io/blob/master/images/siamese_show_results.jpg.JPG" width="500" height="224" title="Showing the results of the Siamese model">
 
 ### `SimilarityFinder.predict`
 
@@ -203,7 +210,11 @@ class Hook():
 6. Retrieve the image pair with the greatest predicted probability of similarity, taking them to be the most similar of the images considered. Show the images side-by-side with `SiameseImage.show` and output the file name of the most similar image.
 
 That is the primary functionality of the pipeline, but, if implemented as such, we would not know why the images were considered the "most similar". In other words, it would be useful if we could determine the image features that the model utilized to make the prediction. Lest the model predicts two images to be similar due to extraneous factors (i.e. similar backgrounds), I added a CAM functionality.
+
+<img src="https://github.com/adam-mehdi/adam-mehdi.github.io/blob/master/images/simfinder_predict.jpg" width="500" height="224" title="Outputs of predict">
+
 ### CAM
+
 Class activation maps are grids that show the places on the original image that most contribute to the output. We create one by matrix multiplying the activations of the model's body (called a spatial map) with a matrix containing the gradient of the output. Here, I used the weight matrix of the final layer of the model as the gradients, as the derivative of the output with respect to the input is the weights. 
 
 Intuitively, the spatial map shows the prominence of the features in each position of the image, and the gradient matrix connects each feature with the output, showing the extent to which each feature was used. The result is an illustration of how each position in the image contributed to the output.
@@ -233,8 +244,11 @@ class SimilarityFinder:
 def show_cam(t, cam_map, ctx):
       show_image(t, ctx=ctx)
       ctx.imshow(cam_map[0].detach().cpu(), extent=[0,t.shape[2],t.shape[1],0], 
-      alpha=.7, interpolation='BILINEAR', cmap='magma')
+      alpha=.7, interpolation='BILINEAR', cmap='magma')      
 ```
+
+<img src="https://github.com/adam-mehdi/adam-mehdi.github.io/blob/master/images/simfinder_cam.jpg" width="500" height="224" title="The output of show_cam">
+
 ### Final Words
 
 In this project, we predicted the most similar pet to an input pet and then interpreted that prediction with CAMs. In this final section, I will attempt to more precisely define "most similar" and explain why this nuanced definition holds practical consequences.
