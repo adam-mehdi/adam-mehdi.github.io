@@ -211,7 +211,7 @@ class Hook():
 
 That is the primary functionality of the pipeline, but, if implemented as such, we would not know why the images were considered the "most similar". In other words, it would be useful if we could determine the image features that the model utilized to make the prediction. Lest the model predicts two images to be similar due to extraneous factors (i.e. similar backgrounds), I added a CAM functionality.
 
-<img src="https://github.com/adam-mehdi/adam-mehdi.github.io/blob/master/images/simfinder_predict.jpg" width="500" height="224" title="Outputs of predict">
+<img src="https://github.com/adam-mehdi/adam-mehdi.github.io/blob/master/images/simfinder_predict1.jpg" width="400" height="224" title="Outputs of predict">
 
 ### CAM
 
