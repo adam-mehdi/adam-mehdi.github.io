@@ -1,22 +1,18 @@
 # Image Similarity Finder: Theory and Code
 
-A heuristic for similarity in unstructured image data.
+A heuristic for computing similarity among unstructured image data.
 
 ## Introduction
 
-How can we compute similarity among image data? For tabular and vectorized data, we can compute similarity by simply finding the sum of the difference between each example 
-along their categories. However, doing the same in images--summing the difference between each pixel value--would clearly fail. The information in images lie in the interaction 
-between pixels; we would have to extract meaningful features out of the images into a vectorized form if we were to proceed in the same manner.
+How can we compute how similar one image is to another? For similarity among data in a vectorized form, we can simply find the sum of the differences between two examples. However, doing the same in images--summing the difference between each pixel value--fails, since the information in images lie in the interaction 
+between pixels. We would have to extract the meaningful features out of the images into a vectorized form if we were to proceed.
 	
-But how do we extract features out of unstructured data like images? In NLP, we use learnable embeddings--numerical feature vectors containing the meaning of particular words 
-in a way that the computer understands. We can use vectors to represent words because words contain limited information in themselves. However, the adage a picture is worth a 
-thousand words renders its taunting face here. Images are incomparably rich in information.
+But how do we extract features out of unstructured data like images? In NLP, we use learnable embeddings--numerical feature vectors containing the meaning of particular words. We can use vectors to represent words since words contain bounded information in themselves. However, that won't work in images. As the hackneyed adage goes: *a picture is worth a thousand words*. Images are incomparably rich in information, so representing them in vectors is no trivial pursuit.
 
-Even if we have a process whereby we can extract the features from images to compare them, how big would that feature vector have to be? Unfeasibly big. If 
-we seek a method of comparing image similarity, then, the approach of converting images into a more structured form is likely doomed to fail. We need another approach, 
-one that can parse and compare images in their entirety. Hence this project. 
+Even if we had a process whereby we can extract vectorized features from images, that feature vector have to be extraordinarily big. Unfeasibly big. If 
+we seek a method of comparing image similarity, then, the approach of converting unstructured images into a structured form is likely doomed to fail. We need another approach, one that parses and compares image information directly from the unstructured images. Hence this project. 
 
-I use a compound deep learning pipeline to propose an explainable heuristic for automatically finding similarity between images. I use the simple Oxford PETS dataset. 
+I propose a compound deep learning pipeline as an explainable heuristic for automatically predicting similarity between images. To do so, I used the Oxford PETS dataset. 
 The implementation of this pipeline is probably similar to that of facial recognition technologies, although I am unfamiliar with any other approach. In this article, I 
 walk through each step of my project, from classification of pet breeds to finding similarity with the Siamese model and interpreting predictions with class activation maps 
 (CAMs). The code is written using PyTorch and fastai. I will conclude by discussing potential applications of this heuristic as a crude clustering algorithm for minimally 
@@ -260,3 +256,8 @@ This variability of two images' predicted image similarity based on class is a u
 We would determine the similarity of the cases from the CT scan images, but we do not want the model to predict similarity due to extraneous factors such as bone structure or scan quality; we want the similarity to be based on the progression and nature of the disease. Hence, it is useful to determine the features that will contribute to the prediction by specifying class label (e.g. severity and type of pneumonia) and to confirm that appropriate features were utilized by analyzing CAMs.
 
 The purpose of this project was to implement an algorithm that can compute similarity on unstructured image data. `SimilarityFinder` serves as an interpretable heuristic to fulfill that purpose. For now, I am interested in applying that heuristic to medical contexts, providing extra data for such clinical tasks as matching pairs for interpretation of randomized control trials. More to come in subsequent posts.
+
+### References
+1. [Deep Learning for Coders with Fastai and PyTorch](https://www.amazon.com/Deep-Learning-Coders-fastai-PyTorch/dp/1492045527)
+2. [fastai documentation](https://docs.fast.ai/]
+3. [grad-CAM paper](https://arxiv.org/abs/1611.07450)
