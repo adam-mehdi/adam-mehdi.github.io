@@ -7,11 +7,11 @@
 # https://learnxinyminutes.com/docs/yaml/
 
 title: Mehdi Blog
-description: Explorations into deep learning's applications to biology and entrepreneurship. And, some philosophical musings to go along with it.
+description: Exploring AI's biological and entrepreneurial applications. Spiced with some philosophical musings.
 github_username: adam-mehdi
 
 # Email and twitter are optional:
-email:
+email: adam.d.mehdi@gmail.com
 twitter_username:
 
 # Set this to true to get LaTeX math equation support
