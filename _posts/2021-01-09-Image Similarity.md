@@ -1,4 +1,4 @@
-# Image Similarity Finder: Theory and Code
+# Image Similarity: Theory and Code
 
 A heuristic for computing similarity among unstructured image data.
 
