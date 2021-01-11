@@ -19,7 +19,8 @@ labelled datasets and matching similar patients for medical prognosis.
 
 Here is the original project’s notebook. I suggest working through the notebook as you read through the following commentary, since I omit some details for brevity.
 
-<img src="https://github.com/adam-mehdi/adam-mehdi.github.io/blob/master/images/title_cam.jpg" width="500" height="224" title="A pair of pets predicted to be similar">
+
+<img src="/images/title_cam.jpg" width="500" height="224" title="A pair of pets predicted to be similar">
 
 
 ## Diving into the Implementation
@@ -80,7 +81,7 @@ clearn.fit_one_cycle(n_epochs, lr)
 
 The classification pipeline is complete; let's move on to the more complicated comparison pipeline.
 
-<img src="https://github.com/adam-mehdi/adam-mehdi.github.io/blob/master/images/classifier_show_results.jpg" width="500" height="224" title="Showing the results of the classifier">
+<img src="/images/classifier_show_results.jpg" width="500" height="224" title="Showing the results of the classifier">
 
 ### Comparison
 
@@ -137,7 +138,7 @@ We use the capability of determining shared breed as a heuristic for image simil
 
 Now, let's return to the heart of the project, `SimilarityFinder`, in which we string these capabilities together.
 
-<img src="https://github.com/adam-mehdi/adam-mehdi.github.io/blob/master/images/siamese_show_results.jpg.JPG" width="400" height="224" title="Showing the results of the Siamese model">
+<img src="/images/siamese_show_results.jpg.JPG" width="400" height="224" title="Showing the results of the Siamese model">
 
 ### `SimilarityFinder.predict`
 
@@ -206,7 +207,7 @@ class Hook():
 
 That is the primary functionality of the pipeline, but, if implemented as such, we would not know why the images were considered the "most similar". In other words, it would be useful if we could determine the image features that the model utilized to make the prediction. Lest the model predicts two images to be similar due to extraneous factors (i.e. similar backgrounds), I added a CAM functionality.
 
-<img src="https://github.com/adam-mehdi/adam-mehdi.github.io/blob/master/images/simfinder_predict1.jpg" width="400" height="224" title="Outputs of predict">
+<img src="/images/simfinder_predict1.jpg" width="400" height="224" title="Outputs of predict">
 
 ### CAM
 
@@ -242,7 +243,7 @@ def show_cam(t, cam_map, ctx):
       alpha=.7, interpolation='BILINEAR', cmap='magma')      
 ```
 
-<img src="https://github.com/adam-mehdi/adam-mehdi.github.io/blob/master/images/simfinder_cam.jpg" width="500" height="224" title="The output of show_cam">
+<img src="/images/simfinder_cam.jpg" width="500" height="224" title="The output of show_cam">
 
 ### Final Words
 
