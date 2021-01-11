@@ -245,7 +245,7 @@ def show_cam(t, cam_map, ctx):
 
 <img src="/images/simfinder_cam.jpg" width="400" height="224" title="The output of show_cam">
 
-### Final Words
+## Final Words
 
 In this project, we predicted the most similar pet to an input pet and then interpreted that prediction with CAMs. In this final section, I will attempt to more precisely define "most similar" and explain why this nuanced definition holds practical consequences.
 
