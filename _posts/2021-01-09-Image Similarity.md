@@ -138,7 +138,7 @@ We use the capability of determining shared breed as a heuristic for image simil
 
 Now, let's return to the heart of the project, `SimilarityFinder`, in which we string these capabilities together.
 
-<img src="/images/siamese_show_results.jpg.JPG" width="400" height="224" title="Showing the results of the Siamese model">
+<img src="/images/siamese_show_results.jpg.JPG" width="370" height="224" title="Showing the results of the Siamese model">
 
 ### `SimilarityFinder.predict`
 
