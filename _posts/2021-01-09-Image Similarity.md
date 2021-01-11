@@ -4,7 +4,7 @@ A heuristic for computing similarity among unstructured image data.
 
 ## Introduction
 
-How can we compute how similar one image is to another? For similarity among data in a vectorized form, we can simply find the sum of the differences between two examples. However, doing the same in images--summing the difference between each pixel value--fails, since the information in images lie in the interaction 
+How can we compute how similar one image is to another? For similarity among data in a vectorized form, we can simply find the sum of the squared differences between two examples. However, doing the same in images--summing the squared difference between each pixel value--fails, since the information in images lie in the interaction 
 between pixels. We would have to extract the meaningful features out of the images into a vectorized form if we were to proceed.
 	
 But how do we extract features out of unstructured data like images? In NLP, we use learnable embeddings--numerical feature vectors containing the meaning of particular words. We can use vectors to represent words since words contain bounded information in themselves. However, that won't work in images. As the hackneyed adage goes: *a picture is worth a thousand words*. Images are incomparably rich in information, so representing them in vectors is no trivial pursuit. Even if we had a process whereby we can extract vectorized features from images, that feature vector have to be extraordinarily big. Unfeasibly big. 
