@@ -243,7 +243,7 @@ def show_cam(t, cam_map, ctx):
       alpha=.7, interpolation='BILINEAR', cmap='magma')      
 ```
 
-<img src="/images/simfinder_cam.jpg" width="500" height="224" title="The output of show_cam">
+<img src="/images/simfinder_cam.jpg" width="400" height="224" title="The output of show_cam">
 
 ### Final Words
 
