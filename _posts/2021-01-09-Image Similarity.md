@@ -17,7 +17,7 @@ walk through each step of my project, from classification of pet breeds to findi
 (CAMs). The code is written using PyTorch and fastai. I will conclude by discussing potential applications of this heuristic as a crude clustering algorithm for minimally 
 labelled datasets and matching similar patients for medical prognosis.
 
-Here is the original project’s notebook. I suggest working through the notebook as you read through the following commentary, since I omit some details for brevity.
+Here is the [original project’s notebook](https://colab.research.google.com/drive/1VZ7uSNOt-q8eUTMT0OxBbav_w2UtCtHY). I suggest working through the notebook as you read through the following commentary, since I omit some details for brevity.
 
 
 <img src="/images/title_cam.jpg" width="500" height="224" title="A pair of pets predicted to be similar">
