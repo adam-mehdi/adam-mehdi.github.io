@@ -259,5 +259,5 @@ The purpose of this project was to implement an algorithm that can compute simil
 
 ### References
 1. [Deep Learning for Coders with Fastai and PyTorch](https://www.amazon.com/Deep-Learning-Coders-fastai-PyTorch/dp/1492045527)
-2. [fastai documentation](https://docs.fast.ai/]
+2. [fastai documentation](https://docs.fast.ai/)
 3. [grad-CAM paper](https://arxiv.org/abs/1611.07450)
