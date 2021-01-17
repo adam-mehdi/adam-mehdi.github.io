@@ -1,4 +1,3 @@
 # About
 
-This is the Mehdi blog, where I provide explanation to my projects in AI.
-
+This is the Mehdi blog. Here, I provide explanation to my AI projects which aim to explore and develop computational methods to address biological problems.
