@@ -1,18 +1,18 @@
 # Image Similarity: Theory and Code
 
-A heuristic for computing similarity among unstructured image data.
+A heuristic for computing similarity in unstructured image data.
 
 ## Introduction
 
-How can we compute how similar one image is to another? For similarity among data in a vectorized form, we can simply find the sum of the squared differences between two examples. However, doing the same in images--summing the squared difference between each pixel value--fails, since the information in images lie in the interaction 
-between pixels. We would have to extract the meaningful features out of the images into a vectorized form if we were to proceed.
+How could we compute how similar one image is to another? For similarity among data in a vectorized form, we can find the sum of the squared differences between two examples, or use similar methods like cosine similarity. However, performing such techniques on images--summing the squared difference between each pixel value--fails, since the information in images lie in the interaction 
+between pixels. We would have to first extract the meaningful features out of the images into a vectorized form if we were to proceed.
 	
-But how do we extract features out of unstructured data like images? In NLP, we use learnable embeddings--numerical feature vectors containing the meaning of particular words. We can use vectors to represent words since words contain bounded information in themselves. However, that won't work in images. As the hackneyed adage goes: *a picture is worth a thousand words*. Images are incomparably rich in information, so representing them in vectors is no trivial pursuit. Even if we had a process whereby we can extract vectorized features from images, that feature vector have to be extraordinarily big. Unfeasibly big. 
+But how do we extract features out of unstructured data like images? In NLP, we use learnable embeddings--feature vectors containing the meaning of particular words. We can use vectors to represent words since words contain bounded information in themselves. However, that won't work in images. As the hackneyed adage goes: *a picture is worth a thousand words*. Images are incomparably rich in information, so representing them in vectors is no trivial pursuit. Even if we had a process that extracts vectorized features from images, that feature vector have to be extraordinarily big. Unfeasibly big. 
 
 If we seek a method of comparing image similarity, then, the approach of converting unstructured images into a structured form is likely doomed to fail. We need another approach, one that parses and compares image information directly from the unstructured images. Hence this project. 
 
 I propose a compound deep learning pipeline as an explainable heuristic for automatically predicting similarity between images. To do so, I used the Oxford PETS dataset. 
-The implementation of this pipeline is probably similar to that of facial recognition technologies, although I am unfamiliar with any other approach. In this article, I 
+The implementation of this pipeline is probably similar to that of facial recognition technologies, although I am unfamiliar with those approaches. In this article, I 
 walk through each step of my project, from classification of pet breeds to finding similarity with the Siamese model and interpreting predictions with class activation maps 
 (CAMs). The code is written using PyTorch and fastai. I will conclude by discussing potential applications of this heuristic as a crude clustering algorithm for minimally 
 labelled datasets and matching similar patients for medical prognosis.
@@ -27,7 +27,7 @@ Here is the [original project’s notebook](https://colab.research.google.com/dr
 
 Let’s begin where we can get a clear view of the whole project: at the end. 
 
-The `SimilarityFinder` class is my modularized version of the inference pipeline, and once we understand its three methods, we will have grokked the essence of the project. `SimilarityFinder` strings together two models, a classifier that predicts the breed of a pet and a comparison (`Siamese`) model that determines whether two images are 'similar'. We use them to predict the image in our comparison image files that is most similar to the input image.
+The `SimilarityFinder` class is my modularized version of the inference pipeline, and once we understand its three methods, we will have grokked the essence of the project. `SimilarityFinder` strings together two models, a classifier that predicts the breed of a pet and a comparison (`Siamese`) model that determines whether two images are similar. We use them to predict the image in our comparison image files that is most similar to the input image.
 
 ``` python
 class SimilarityFinder:
@@ -124,7 +124,7 @@ class SiameseModel(Module):
           ftrs = torch.cat([self.encoder(x1), self.encoder(x2)], dim=1)
           return self.head(ftrs)
 encoder = create_body(resnet34, cut=-2)
-head = create_head(512*2, 1, ps=0.5)
+head = create_head(512*2, 2, ps=0.5)
 smodel = SiameseModel(encoder, head)
 ```
 4. Create the `Learner` and train the model. We deal with little wrinkles in `Learner`: specify the location of the body and head with `siamese_splitter` and cast the target as a float in `loss_func`. Note that after we customized the data and model, everything else falls into place, and we can proceed training in the standard way.
@@ -188,7 +188,7 @@ def predict_class(fn,learn):
 ```
 2. Retrieve a list of same-class images for comparison. I am using predicted class as a heuristic to reduce the amount of images we must search through to retrieve the most similar. `compare_n` specifies the amount of images we would search through, so if case we want speedy results, we would reduce `compare_n`. If `compare_n` is 20, calling `predict` takes about one second.
 
-3. Register a hook to record activations of the body. Hooks are pieces of code that we inject into PyTorch models to perform additional functionality. They work well with context managers (`with` blocks) because we must remove the hook after using it. Here, I used the hook to store the final activations of the model's body so I could implement `similar_cams` (explained later).
+3. Register a hook to record activations of the body. Hooks are pieces of code that we inject into PyTorch models if we want them to perform additional functionality. They work well with context managers (`with` blocks) because we must remove the hook after using it. Here, I used the hook to store the final activations of the model's body so I could implement `similar_cams` (explained later).
 ```python
 class Hook():
       def __init__(self, m):
@@ -211,7 +211,7 @@ That is the primary functionality of the pipeline, but, if implemented as such, 
 
 ### CAM
 
-Class activation maps are grids that show the places on the original image that most contribute to the output. We create one by matrix multiplying the activations of the model's body (called a spatial map) with a matrix containing the gradient of the output. Here, I used the weight matrix of the final layer of the model as the gradients, as the derivative of the output with respect to the input is the weights. 
+Class activation maps are grids that show the places on the original image that most contribute to the output. We create one by matrix multiplying the activations of the model's body (called a spatial map) with a matrix containing the gradient of the output. Here, I used the weight matrix of the final layer of the model as the gradients, as the derivative of the output with respect to the input of the final layer is the final layer's weights. 
 
 Intuitively, the spatial map shows the prominence of the features in each position of the image, and the gradient matrix connects each feature with the output, showing the extent to which each feature was used. The result is an illustration of how each position in the image contributed to the output.
 
@@ -247,13 +247,15 @@ def show_cam(t, cam_map, ctx):
 
 ## Final Words
 
-In this project, we predicted the most similar pet to an input pet and then interpreted that prediction with CAMs. In this final section, I will attempt to more precisely define "most similar" and explain why this nuanced definition holds practical consequences.
+In this project, we predicted the most similar pet and then interpreted that prediction with CAMs. To conclude, I will attempt to more precisely define "most similar" and explain why this nuanced definition holds practical consequences.
 
-The central insight in this project is that we can use a Siamese model's confidence in a prediction as a proxy for image similarity. However, "image similarity" in this context does not mean similarity images as a whole, but rather how obviously two images share the features that distinguish a target class. When using the `SimilarityFinder`, then, the classes with which we label our images affect which images are considered to be the most similar. For instance, if we differentiate pets with breed as we did here, the `SimilarityFinder` might predict that two dogs sharing, say, the pointed nose that is distinctive of their breed, are most similar even if their other traits differ considerably. By contrast, if we are to distinguish pets based on another class, such as whether they are cute or not, the model might predict on similar floppy ears more than a pointed nose, since floppy ears would contribute more to cuteness. Thus, `SimilarityFinder` overemphasizes the features that are most important to determining the class on which it is trained.
+The central insight in this project is that we can use a Siamese model's confidence in a prediction as a proxy for image similarity. However, "image similarity" in this context does not mean similarity in images as a whole. Rather, it refers to how obviously two images share the features that distinguish a target class. When using the `SimilarityFinder`, then, the classes with which we label our images affect which image is predicted to be the most similar. 
 
-This variability of two images' predicted image similarity based on class is a useful feature if we are to apply `SimilarityFinder` to more practical problems. For instance, it would be useful as a heuristic for measuring the similarity between the CT scans of pneumonia patients to evaluate treatment options. If we can find the past patient with the most similar case of pneumonia and they responded well to their treatment, say, Cleocin, it is plausible that Cleocin would be a good treatment option for the present patient.
+For instance, if we differentiate pets with breed as we did here, the `SimilarityFinder` might predict that two dogs sharing, say, the pointed nose that is distinctive of their breed, are most similar even if their other traits differ considerably. By contrast, if we are to distinguish pets based on another class, such as whether they are cute or not, the model might consider similar floppy ears more in its prediction than a pointed nose, since floppy ears would contribute more to cuteness. Thus, `SimilarityFinder` overemphasizes the features that are most important to determining the class on which it is trained.
 
-We would determine the similarity of the cases from the CT scan images, but we do not want the model to predict similarity due to extraneous factors such as bone structure or scan quality; we want the similarity to be based on the progression and nature of the disease. Hence, it is useful to determine the features that will contribute to the prediction by specifying class label (e.g. severity and type of pneumonia) and to confirm that appropriate features were utilized by analyzing CAMs.
+This variability in predicted image similarity based on training label is a useful feature of `SimilarityFinder` if we are to apply it to more practical problems. For instance, `SimilarityFinder` would be a useful heuristic for finding the similarity between CT scans of pneumonia patients, as that similarity measure would help evaluating treatment options. To illustrate, if we can find the past patient with the most similar case of pneumonia and they responded well to their treatment, say, Cleocin, it is plausible that Cleocin would be a good treatment option for the present patient.
+
+We would determine the similarity of the cases from the CT scan images, but we do not want the model to predict similarity due to extraneous factors such as bone structure or scan quality; we want the similarity to be based on the progression and nature of the disease. Hence, it is useful to determine the features that will contribute to the prediction by specifying class label (e.g. severity and type of pneumonia) and to confirm that appropriate features were utilized by analyzing our CAMs.
 
 The purpose of this project was to implement an algorithm that can compute similarity on unstructured image data. `SimilarityFinder` serves as an interpretable heuristic to fulfill that purpose. For now, I am interested in applying that heuristic to medical contexts, providing extra data for such clinical tasks as matching pairs for interpretation of randomized control trials. More to come in subsequent posts.
 
