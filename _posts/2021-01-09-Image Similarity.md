@@ -142,7 +142,7 @@ Now, let's return to the heart of the project, `SimilarityFinder`, in which we s
 
 ### `SimilarityFinder.predict`
 
-This is the most complex method in the project, so I'll break it down bit by bit. The jist is as follows: input an image file, predict its class, search through a repsitory of images of that same class, record activations of the body with a hook (for `similar_cams`), and output the most similar image.
+This is the most complex method in the project, so I'll break it down bit by bit. The gist is as follows: input an image file, predict its class, search through a repsitory of images of that same class, record activations of the body with a hook (for `similar_cams`), and output the most similar image.
 
 ```python
 class SimilarityFinder:
